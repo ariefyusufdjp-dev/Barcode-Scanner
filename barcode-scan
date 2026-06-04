@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bebas Izin - Barcode Scanner</title>
+  <script src="https://unpkg.com/html5-qrcode"></script>
+  <style>
+    body { font-family: sans-serif; text-align: center; background: #f0f2f5; padding: 20px; }
+    #reader { width: 100%; max-width: 450px; margin: auto; background: white; border-radius: 8px; }
+    #status { margin-top: 20px; font-weight: bold; font-size: 1.1em; }
+  </style>
+</head>
+<body>
+
+  <h2>Barcode / QR Scanner (Eksternal)</h2>
+  <div id="reader"></div>
+  <div id="status">Menunggu scan...</div>
+
+  <script>
+    // PENTING: GANTI DENGAN URL WEB APP ANDA YANG BERAKHIRAN /exec
+    const WEB_APP_URL = https://script.google.com/macros/s/AKfycbw3G5aLhCJLl1SKFe8znNh45g1_Ed6xIdmUrowO5ExPl2lD68O7B00QUmkDWVQXxtGw/exec; 
+
+    function onScanSuccess(decodedText) {
+      html5QrcodeScanner.clear(); 
+      document.getElementById('status').innerText = "Mengirim " + decodedText + " ke Google Sheets...";
+      document.getElementById('status').style.color = "blue";
+
+      fetch(WEB_APP_URL, {
+        method: "POST",
+        mode: "no-cors", 
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ barcode: decodedText })
+      })
+      .then(() => {
+        document.getElementById('status').innerText = "Berhasil Disimpan: " + decodedText;
+        document.getElementById('status').style.color = "green";
+        setTimeout(startScanner, 2000); 
+      })
+      .catch(err => {
+        document.getElementById('status').innerText = "Gagal mengirim data.";
+        document.getElementById('status').style.color = "red";
+        setTimeout(startScanner, 2000);
+      });
+    }
+
+    function startScanner() {
+      html5QrcodeScanner = new Html5QrcodeScanner("reader", { fps: 10, qrbox: 250 });
+      html5QrcodeScanner.render(onScanSuccess);
+    }
+
+    let html5QrcodeScanner;
+    startScanner();
+  </script>
+</body>
+</html>
